@@ -7,7 +7,7 @@ pipeline {
    stages {
        stage('Checkout Code') {
            steps {
-               git 'https://github.com/your-username/devops-capstone-project.git'
+               git 'https://github.com/Pranavpatil09/devops-capstone-project.git'
            }
        }
        stage('Build Docker Image') {
