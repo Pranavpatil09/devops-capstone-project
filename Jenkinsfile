@@ -2,7 +2,7 @@ pipeline {
    agent any
    environment {
        IMAGE_NAME = "devops-capstone"
-       DOCKERHUB_USERNAME = "your_dockerhub_username"
+       DOCKERHUB_USERNAME = "pranavpatildevops"
    }
    stages {
        stage('Checkout Code') {
