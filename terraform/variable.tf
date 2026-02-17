@@ -2,19 +2,9 @@ variable "region" {
   default = "ap-south-1"
 }
 
-variable "instance_type" {
-  default = "t3.micro"
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  owners = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
+variable "ami" {
+  description = "Amazon Linux 2 AMI for Mumbai"
+  default     = "ami-03f4878755434977f"
 }
 
 variable "key_name" {
