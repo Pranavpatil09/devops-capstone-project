@@ -8,5 +8,6 @@ variable "ami" {
 }
 
 variable "key_name" {
-  description = "Your existing AWS key pair name"
+  description = "Existing AWS key pair name"
+  default     = "devops-key"
 }
