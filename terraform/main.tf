@@ -56,7 +56,7 @@ resource "aws_security_group" "jenkins_sg" {
 # EC2 Instance
 resource "aws_instance" "jenkins_server" {
   ami                         = var.ami
-  instance_type               = "t2.micro"   # Free tier eligible
+  instance_type               = "t3.micro"   # Free tier eligible
   key_name                    = var.key_name
   subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
