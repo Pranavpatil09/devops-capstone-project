@@ -2,12 +2,24 @@ provider "aws" {
   region = var.region
 }
 
-# ----------------------------
+# Get default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Get default subnet
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
 # Security Group
-# ----------------------------
-resource "aws_security_group" "devops_sg" {
-  name        = "devops-sg"
-  description = "Allow SSH and Jenkins"
+resource "aws_security_group" "jenkins_sg" {
+  name        = "jenkins-sg"
+  description = "Allow SSH, Jenkins and HTTP"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "SSH"
@@ -25,6 +37,14 @@ resource "aws_security_group" "devops_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -33,43 +53,41 @@ resource "aws_security_group" "devops_sg" {
   }
 }
 
-# ----------------------------
-# EC2 with Docker + Jenkins Auto Install
-# ----------------------------
-resource "aws_instance" "devops_ec2" {
-  ami                    = var.ami
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.devops_sg.id]
+# EC2 Instance
+resource "aws_instance" "jenkins_server" {
+  ami                         = var.ami
+  instance_type               = "t2.micro"   # Free tier eligible
+  key_name                    = var.key_name
+  subnet_id                   = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
+  associate_public_ip_address = true
 
   user_data = <<-EOF
               #!/bin/bash
-              apt update -y
+              yum update -y
 
               # Install Docker
-              apt install -y docker.io
+              yum install docker -y
               systemctl start docker
               systemctl enable docker
-              usermod -aG docker ubuntu
+              usermod -aG docker ec2-user
 
-              # Run Jenkins Container
-              docker run -d \
-                --name jenkins \
-                -p 8080:8080 \
-                -p 50000:50000 \
-                -v jenkins_home:/var/jenkins_home \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                jenkins/jenkins:lts-jdk17
+              # Install Jenkins
+              wget -O /etc/yum.repos.d/jenkins.repo \
+                https://pkg.jenkins.io/redhat-stable/jenkins.repo
+              rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+              yum install java-17-amazon-corretto -y
+              yum install jenkins -y
+
+              systemctl enable jenkins
+              systemctl start jenkins
               EOF
 
   tags = {
-    Name = "DevOps-Capstone"
+    Name = "Jenkins-Docker-Server"
   }
 }
 
-# ----------------------------
-# Output Public IP
-# ----------------------------
-output "ec2_public_ip" {
-  value = aws_instance.devops_ec2.public_ip
+output "public_ip" {
+  value = aws_instance.jenkins_server.public_ip
 }
