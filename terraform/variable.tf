@@ -4,7 +4,7 @@ variable "region" {
 
 variable "ami" {
   description = "Amazon Linux 2 AMI for Mumbai"
-  default     = "ami-03f4878755434977f"
+  default     = "ami-0317b0f0a0144b137"
 }
 
 variable "key_name" {
