@@ -62,17 +62,30 @@ resource "aws_instance" "jenkins_server" {
   vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
   associate_public_ip_address = true
 
-  user_data = <<-EOF
+    user_data = <<-EOF
               #!/bin/bash
               yum update -y
 
-              # Install Docker
+              # ----------------------------
+              # CREATE 2GB SWAP (IMPORTANT)
+              # ----------------------------
+              fallocate -l 2G /swapfile
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+              echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
+
+              # ----------------------------
+              # INSTALL DOCKER
+              # ----------------------------
               yum install docker -y
               systemctl start docker
               systemctl enable docker
               usermod -aG docker ec2-user
 
-              # Install Jenkins
+              # ----------------------------
+              # INSTALL JENKINS
+              # ----------------------------
               wget -O /etc/yum.repos.d/jenkins.repo \
                 https://pkg.jenkins.io/redhat-stable/jenkins.repo
               rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
@@ -81,6 +94,10 @@ resource "aws_instance" "jenkins_server" {
 
               systemctl enable jenkins
               systemctl start jenkins
+
+              # Allow Jenkins to use Docker
+              usermod -aG docker jenkins
+              systemctl restart jenkins
               EOF
 
   tags = {
