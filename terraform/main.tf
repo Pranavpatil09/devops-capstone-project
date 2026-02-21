@@ -56,18 +56,30 @@ resource "aws_security_group" "jenkins_sg" {
 # EC2 Instance
 resource "aws_instance" "jenkins_server" {
   ami                         = var.ami
-  instance_type               = "t3.micro"   # Free tier eligible
+  instance_type               = "t3.micro"
   key_name                    = var.key_name
   subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
   associate_public_ip_address = true
 
-    user_data = <<-EOF
+  # Increase root disk size
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp2"
+  }
+
+  user_data = <<-EOF
               #!/bin/bash
               yum update -y
 
               # ----------------------------
-              # CREATE 2GB SWAP (IMPORTANT)
+              # INCREASE /tmp SIZE TO 1GB
+              # ----------------------------
+              echo "tmpfs /tmp tmpfs defaults,size=1G 0 0" >> /etc/fstab
+              mount -o remount /tmp
+
+              # ----------------------------
+              # CREATE 2GB SWAP
               # ----------------------------
               fallocate -l 2G /swapfile
               chmod 600 /swapfile
