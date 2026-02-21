@@ -73,9 +73,9 @@ resource "aws_instance" "jenkins_server" {
               yum update -y
 
               # ----------------------------
-              # INCREASE /tmp SIZE TO 1GB
+              # INCREASE /tmp SIZE TO 2GB
               # ----------------------------
-              echo "tmpfs /tmp tmpfs defaults,size=1G 0 0" >> /etc/fstab
+              echo "tmpfs /tmp tmpfs defaults,size=2G 0 0" >> /etc/fstab
               mount -o remount /tmp
 
               # ----------------------------
