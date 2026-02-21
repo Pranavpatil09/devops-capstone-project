@@ -87,6 +87,9 @@ resource "aws_instance" "jenkins_server" {
               swapon /swapfile
               echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
 
+              # Install Git
+              yum install git -y
+
               # ----------------------------
               # INSTALL DOCKER
               # ----------------------------
