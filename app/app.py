@@ -2,7 +2,7 @@ from flask import Flask
 app = Flask(__name__)
 @app.route("/")
 def home():
-   return "DevOps Capstone Project Successfully Deployed on EC2 instance!"
+   return "DevOps Capstone Project Successfully Deployed"
 @app.route("/health")
 def health():
    return {"status": "UP"}
