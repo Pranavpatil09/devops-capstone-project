@@ -26,6 +26,7 @@ resource "aws_instance" "jenkins_server" {
   user_data = filebase64("${path.module}/../../scripts/install_jenkins_docker.sh")
 
   tags = {
-    Name = "${var.project}-${var.env}-jenkins-server"
+    Name = "${var.project}-${var.env}-jenkins-server-1"
   }
 }
+

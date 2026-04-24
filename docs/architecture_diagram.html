@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Diagram</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>DevOps Capstone Project Architecture</h2>
+        <div class="mermaid">
+flowchart TD
+    %% Define Global Styles
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef vpc fill:#F8F8F8,stroke:#00A4A6,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef public fill:#E6F7FF,stroke:#00A4A6,stroke-width:1px;
+    classDef private fill:#E6FFED,stroke:#1D8102,stroke-width:1px;
+    classDef external fill:#F3F3F3,stroke:#333333,stroke-width:2px;
+
+    %% External Entities
+    User((Users)):::external
+    Dev((Developer)):::external
+    GitHub[GitHub Repository]:::external
+    DockerHub[Docker Hub Registry]:::external
+
+    %% AWS Cloud
+    subgraph AWS [AWS Cloud Region: ap-south-1]
+        IGW[Internet Gateway]:::aws
+        
+        %% VPC
+        subgraph VPC [VPC: 10.0.0.0/16]
+            
+            %% Availability Zone 1
+            subgraph AZ1 [Availability Zone 1: ap-south-1a]
+                subgraph Pub1 [Public Subnet 1: 10.0.1.0/24]
+                    Jenkins[Jenkins Controller]
+                    ALB1[ALB Node 1]
+                    NAT[NAT Gateway]
+                end
+                
+                subgraph Priv1 [Private Subnet 1: 10.0.3.0/24]
+                    App1[Flask App Instance]
+                end
+            end
+            
+            %% Availability Zone 2
+            subgraph AZ2 [Availability Zone 2: ap-south-1b]
+                subgraph Pub2 [Public Subnet 2: 10.0.2.0/24]
+                    ALB2[ALB Node 2]
+                end
+                
+                subgraph Priv2 [Private Subnet 2: 10.0.4.0/24]
+                    App2[Flask App Instance]
+                end
+            end
+        end
+        
+        ASG{Auto Scaling Group}:::aws
+    end
+
+    %% Apply Styles to Subgraphs
+    class AWS aws;
+    class VPC vpc;
+    class Pub1,Pub2 public;
+    class Priv1,Priv2 private;
+
+    %% User Traffic Flow
+    User -->|HTTP/HTTPS| IGW
+    IGW --> ALB1
+    IGW --> ALB2
+    ALB1 -->|Port 80/5000| App1
+    ALB1 -->|Port 80/5000| App2
+    ALB2 -->|Port 80/5000| App1
+    ALB2 -->|Port 80/5000| App2
+
+    %% Internal Outbound Flow (For pulling Docker Images)
+    App1 -.->|Outbound| NAT
+    App2 -.->|Outbound| NAT
+    NAT -.-> IGW
+    IGW -.->|Pull :latest| DockerHub
+
+    %% CI/CD Pipeline Flow
+    Dev -->|Push Code| GitHub
+    GitHub -->|Trigger| Jenkins
+    Jenkins -->|Build & Push| DockerHub
+    Jenkins -->|Trigger Refresh| ASG
+    
+    %% Infrastructure Management
+    ASG ==|Manages Lifecycle|==> App1
+    ASG ==|Manages Lifecycle|==> App2
+        </div>
+    </div>
+
+    <!-- Load Mermaid.js to render the diagram visually -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

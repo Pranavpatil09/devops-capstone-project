@@ -12,14 +12,14 @@ resource "aws_lb" "jenkins_alb" {
   }
 }
 
-resource "aws_lb_target_group" "jenkins_tg" {
-  name     = "${var.project}-${var.env}-tg"
+resource "aws_lb_target_group" "app_tg" {
+  name     = "${var.project}-${var.env}-app-tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
 
   health_check {
-    path                = "/health"
+    path                = "/"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -28,7 +28,11 @@ resource "aws_lb_target_group" "jenkins_tg" {
   }
 
   tags = {
-    Name = "${var.project}-${var.env}-tg"
+    Name = "${var.project}-${var.env}-app-tg"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -39,12 +43,7 @@ resource "aws_lb_listener" "jenkins_listener" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.jenkins_tg.arn
+    target_group_arn = aws_lb_target_group.app_tg.arn
   }
 }
 
-resource "aws_lb_target_group_attachment" "jenkins_tg_attachment" {
-  target_group_arn = aws_lb_target_group.jenkins_tg.arn
-  target_id        = aws_instance.jenkins_server.id
-  port             = 80
-}

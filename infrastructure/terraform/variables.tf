@@ -46,6 +46,29 @@ variable "public_subnet_2_az" {
   default     = "ap-south-1b"
 }
 
+variable "private_subnet_1_cidr" {
+  description = "CIDR block for Private Subnet 1"
+  type        = string
+  default     = "10.0.3.0/24"
+}
+
+variable "private_subnet_2_cidr" {
+  description = "CIDR block for Private Subnet 2"
+  type        = string
+  default     = "10.0.4.0/24"
+}
+
+variable "private_subnet_1_az" {
+  description = "Availability Zone for Private Subnet 1"
+  type        = string
+  default     = "ap-south-1a"
+}
+
+variable "private_subnet_2_az" {
+  description = "Availability Zone for Private Subnet 2"
+  type        = string
+  default     = "ap-south-1b"
+}
 variable "admin_ip" {
   description = "Admin IP for SSH access (optional)"
   type        = string

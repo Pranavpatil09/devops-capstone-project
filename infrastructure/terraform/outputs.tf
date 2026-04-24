@@ -8,12 +8,12 @@ output "public_subnet_ids" {
   value       = [aws_subnet.public_1.id, aws_subnet.public_2.id]
 }
 
-output "app_url" {
-  description = "The URL to access the deployed application"
+output "application_url" {
+  description = "The public URL to access the Python Flask Application"
   value       = "http://${aws_lb.jenkins_alb.dns_name}"
 }
 
 output "jenkins_url" {
-  description = "The URL to access Jenkins"
+  description = "The URL to access Jenkins Server (Direct Link)"
   value       = "http://${aws_instance.jenkins_server.public_ip}:8080"
 }

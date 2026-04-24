@@ -19,3 +19,25 @@ resource "aws_subnet" "public_2" {
     Name = "${var.project}-${var.env}-public-2"
   }
 }
+
+resource "aws_subnet" "private_1" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.private_subnet_1_cidr
+  availability_zone       = var.private_subnet_1_az
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.project}-${var.env}-private-1"
+  }
+}
+
+resource "aws_subnet" "private_2" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.private_subnet_2_cidr
+  availability_zone       = var.private_subnet_2_az
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.project}-${var.env}-private-2"
+  }
+}

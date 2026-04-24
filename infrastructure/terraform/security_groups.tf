@@ -28,13 +28,7 @@ resource "aws_security_group" "jenkins_sg" {
   description = "Security group for Jenkins EC2 instance"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description     = "HTTP from ALB"
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
+  # ALB access removed; Jenkins is direct access only
 
   ingress {
     description = "Jenkins Access"
@@ -61,5 +55,38 @@ resource "aws_security_group" "jenkins_sg" {
 
   tags = {
     Name = "${var.project}-${var.env}-jenkins-sg"
+  }
+}
+
+resource "aws_security_group" "app_sg" {
+  name        = "${var.project}-${var.env}-app-sg"
+  description = "Security group for Application ASG"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "HTTP from ALB"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  ingress {
+    description     = "SSH from Jenkins"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.jenkins_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project}-${var.env}-app-sg"
   }
 }

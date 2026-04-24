@@ -45,13 +45,37 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Deploy to Auto Scaling Group') {
             steps {
                 sh '''
-                docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
-                docker stop capstone || true
-                docker rm capstone || true
-                docker run -d --name capstone -p 80:5000 $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
+                echo "Triggering AWS Auto Scaling Group Instance Refresh..."
+                REFRESH_ID=$(aws autoscaling start-instance-refresh \\
+                    --auto-scaling-group-name project-dev-app-asg \\
+                    --region ap-south-1 \\
+                    --preferences '{"SkipMatching": false, "InstanceWarmup": 0}' \\
+                    --query 'InstanceRefreshId' --output text)
+
+                echo "Instance refresh started with ID: $REFRESH_ID"
+                echo "Waiting for instance refresh to complete (this may take a few minutes)..."
+
+                while true; do
+                    STATUS=$(aws autoscaling describe-instance-refreshes \\
+                        --auto-scaling-group-name project-dev-app-asg \\
+                        --region ap-south-1 \\
+                        --instance-refresh-ids $REFRESH_ID \\
+                        --query 'InstanceRefreshes[0].Status' --output text)
+
+                    if [ "$STATUS" = "Successful" ]; then
+                        echo "Instance refresh completed successfully!"
+                        break
+                    elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ]; then
+                        echo "Instance refresh failed or was cancelled."
+                        exit 1
+                    else
+                        echo "Current status: $STATUS. Waiting 30 seconds..."
+                        sleep 30
+                    fi
+                done
                 '''
             }
         }
